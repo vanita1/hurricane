@@ -1,0 +1,101 @@
+filter1 = unique(KATRINA2005f$latitude)
+track_list<- vector("list", length(filter1))
+code1<- vector("list", nrow(KATRINA2005f))
+
+filter1 = unique(KATRINA2005f$latitude)
+final = USAMap
+
+for (k in 1: length(filter1)) {
+
+cat("k",k)
+cat("filter length",length(filter1))
+
+tidy_tracks2 <-  subset(KATRINA2005f, latitude == filter1[k])
+tidy_tracks2<- tidy_tracks2 %>% mutate(ne = ne*1852*1,se = se*1852*1,
+                                sw = sw*1852*1,
+                                   nw = nw*1852*1 )
+l_points_1 = setNames(data.frame(matrix(ncol = 5, nrow = 0)), c("lon", "lat", "wind_speed","quadrant","radius"))
+
+x_tracks = tidy_tracks2
+
+cat("k",k)
+cat("filter length",length(filter1))
+
+
+i=1
+
+for (i in 1:nrow(x_tracks)) {
+
+ cat("i",i)
+cat("nrowxtracks",nrow(x_tracks))
+
+ne_tracks <- base::data.frame(geosphere::destPoint(p = c(x_tracks[i,]$longitude,x_tracks[i,]$latitude),b = 1:90,d = x_tracks[i,]$ne))
+ne_tracks$date<- x_tracks[i,]$date
+ne_tracks$wind_speed<- x_tracks[i,]$wind_speed
+ne_tracks$ne = x_tracks[i,]$ne
+ne_tracks$se = x_tracks[i,]$se
+ne_tracks$sw = x_tracks[i,]$sw
+ne_tracks$nw = x_tracks[i,]$nw
+nw_tracks<- base::data.frame(geosphere::destPoint(p = c(x_tracks[i,]$longitude,x_tracks[i,]$latitude),b = 271:360,d = x_tracks[i,]$nw)) 
+nw_tracks$date<- x_tracks[i,]$date
+nw_tracks$wind_speed<-x_tracks[i,]$wind_speed
+nw_tracks$ne = x_tracks[i,]$ne
+nw_tracks$se = x_tracks[i,]$se
+nw_tracks$sw = x_tracks[i,]$sw
+nw_tracks$nw = x_tracks[i,]$nw                
+se_tracks <- base::data.frame(geosphere::destPoint(p = c(x_tracks[i,]$longitude,x_tracks[i,]$latitude),b = 91:180,d = x_tracks[i,]$se))
+se_tracks$date<- x_tracks[i,]$date
+se_tracks$wind_speed<-x_tracks[i,]$wind_speed
+se_tracks$ne = x_tracks[i,]$ne
+se_tracks$se = x_tracks[i,]$se
+se_tracks$sw = x_tracks[i,]$sw
+se_tracks$nw = x_tracks[i,]$nw
+sw_tracks <- base::data.frame(geosphere::destPoint(p = c(x_tracks[i,]$longitude,x_tracks[i,]$latitude),b = 181:270,d = x_tracks[i,]$sw))
+sw_tracks$date<- x_tracks[i,]$date
+sw_tracks$wind_speed<-x_tracks[i,]$wind_speed
+sw_tracks$ne = x_tracks[i,]$ne
+sw_tracks$se = x_tracks[i,]$se
+sw_tracks$sw = x_tracks[i,]$sw
+sw_tracks$nw = x_tracks[i,]$nw
+
+l_points <- dplyr::bind_rows(list(ne_tracks,se_tracks,sw_tracks,nw_tracks)) 
+
+l_points_1 = dplyr::bind_rows(list(l_points,l_points_1))
+
+ cat("i",i)
+cat("nrowxtracks",nrow(x_tracks))
+
+}
+
+ 
+
+track_list[[k]] = l_points_1
+
+
+}
+
+k = 1
+
+for (k in 1:length(track_list1)){
+
+track_list1[[k]]$wind_speed = as.factor(track_list1[[k]]$wind_speed)
+
+}
+
+
+for (k in 1:length(track_list1)){
+
+final=
+
+final + geom_hurricane(data = track_list1[[k]],
+               aes(x = lon, y = lat, 
+                   ne = ne, se = se, nw = nw,sw = sw,date = date,
+                   fill = wind_speed, color = wind_speed)) +
+scale_color_manual(name = "Wind speed (kts)", 
+                   values = c("red", "orange", "yellow")) + 
+    scale_fill_manual(name = "Wind speed (kts)", 
+                      values = c("red", "orange", "yellow"))} +
+Sys.sleep(5)
+
+	
+
